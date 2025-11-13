@@ -1,0 +1,1 @@
+An integrated NLP app that includes NER recognition, sentiment analysis, text summarization and document categorization, hosted on Streamlit.
