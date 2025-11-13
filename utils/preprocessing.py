@@ -55,6 +55,33 @@ def clean_text(text: str) -> str:
     # --- Normalize spacing ---
     text = re.sub(r"\s+", " ", text)
 
+    # Remove IEEE-style reference block lines:
+    text = re.sub(r"^\s*\[\d+\]\s+.*?(?=\n\[|\Z)", " ", text, flags=re.MULTILINE | re.DOTALL)
+
+    # Remove lines that consist mostly of non-letters (corruption)
+    text = re.sub(r"^[^A-Za-z0-9]{5,}$", " ", text, flags=re.MULTILINE)
+
+    # Remove repeated sequences of random characters
+    text = re.sub(r"\b([a-zA-Z]{2,})\1{2,}\b", " ", text)
+
+    # Remove long sequences of random consonants
+    text = re.sub(r"\b[b-df-hj-np-tv-z]{5,}\b", " ", text, flags=re.IGNORECASE)
+
+    # Remove lines of garbage (min length 20, low vowel count → likely junk)
+    def is_garbage(line):
+        letters = re.sub(r'[^A-Za-z]', '', line)
+        if len(letters) < 20:
+            return False
+        vowel_ratio = sum(c in "aeiouAEIOU" for c in letters) / len(letters)
+        return vowel_ratio < 0.2
+
+    cleaned_lines = []
+    for line in text.split("\n"):
+        if not is_garbage(line):
+            cleaned_lines.append(line)
+
+    text = "\n".join(cleaned_lines)
+
     return text.strip().lower()
 
 
